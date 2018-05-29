@@ -57,7 +57,7 @@ void mysys(int argc, char *argv[])
 	char tmp[buff],t;
 	int err,fd[2],file,flag=0;
 	if (argc > 3 && strcmp(argv[argc-2],">")==0)
-    {
+    {	//判断是否有重定向的情况
 		flag=1;
 		strcpy(tmp,argv[argc-1]);
 	}
@@ -67,12 +67,12 @@ void mysys(int argc, char *argv[])
 		if ( argc > 3 && strcmp(argv[argc-2],">")==0)
 		{
 			pid_t ppid;
-			pipe(fd);
-			ppid=fork();
+			pipe(fd);		//创建管道标识符
+			ppid=fork();	//避免修改主进程的标准输入输出端口，需要在子进程中创建子进程用于处理管道的输入输出
 			if (ppid==0)
 			{
-				dup2(fd[1],1);
-				close(fd[0]);
+				dup2(fd[1],1);		//将标准输出端口接至管道输入那口
+				close(fd[0]);		//关闭标准输入输出端口
 				close(fd[1]);
 				argv[argc-2]=NULL;
 				argv[argc-1]=NULL;
@@ -85,8 +85,8 @@ void mysys(int argc, char *argv[])
 				wait(NULL);
 				if (flag)
 				{
-					dup2(fd[0],0);
-					close(fd[0]);
+					dup2(fd[0],0);		//将标准输入端口接至管道输出端口
+					close(fd[0]);		//关闭标准输入输出端口
 					close(fd[1]);
 					file=open(tmp,O_RDWR|O_CREAT,0666);
 					if (file<0)
@@ -95,7 +95,7 @@ void mysys(int argc, char *argv[])
 						exit(0);
 					}
 					while(1)
-					{
+					{	//从管道中逐个读取字符，输出至目标文件
 						if (!read(0,&t,sizeof(char)))
 							break;
 						//if (&t==NULL)
