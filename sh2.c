@@ -13,7 +13,7 @@ void getcommand(int *argc, char *argv[buff])
 	char tmp;
 	int cur = 0, text_flag = 0, space_flag = 0;
 	*argc = 0;
-	while (1)
+    while (1)
 	{
 		scanf("%c", &tmp);
 		//换行命令结束
@@ -61,57 +61,73 @@ void mysys(int argc, char *argv[])
 		flag=1;
 		strcpy(tmp,argv[argc-1]);
 	}
-    pipe(fd);
 	pid=fork();
 	if (pid==0)
 	{
 		if ( argc > 3 && strcmp(argv[argc-2],">")==0)
 		{
-			dup2(fd[1],1);
-			close(fd[0]);
-			close(fd[1]);
-			argv[argc-2]=NULL;
-			argv[argc-1]=NULL;
+			pid_t ppid;
+			pipe(fd);
+			ppid=fork();
+			if (ppid==0)
+			{
+				dup2(fd[1],1);
+				close(fd[0]);
+				close(fd[1]);
+				argv[argc-2]=NULL;
+				argv[argc-1]=NULL;
+				err=execvp(argv[0], argv);
+				if (err<0)
+					perror("execvp");
+			}
+			else
+			{
+				wait(NULL);
+				if (flag)
+				{
+					dup2(fd[0],0);
+					close(fd[0]);
+					close(fd[1]);
+					file=open(tmp,O_RDWR|O_CREAT,0666);
+					if (file<0)
+					{
+						printf("cannot open file!\n");
+						exit(0);
+					}
+					while(1)
+					{
+						if (!read(0,&t,sizeof(char)))
+							break;
+						//if (&t==NULL)
+						//   break;
+						write(file,&t,sizeof(char));
+					}
+				}
+			}
+            return;
 		}
-		err=execvp(argv[0], argv);
-		if (err<0)
-			perror("execvp");
+		else
+		{
+			err=execvp(argv[0], argv);
+			if (err<0)
+				perror("execvp");
+		}
 	}
 	else
 	{
 		wait(NULL);
-		if (flag)
-		{
-			dup2(fd[0],0);
-			close(fd[0]);
-			close(fd[1]);
-			file=open(tmp,O_RDWR|O_CREAT,0666);
-			if (file<0)
-			{
-				printf("cannot open file!\n");
-				exit(0);
-			}
-			while(1)
-            {
-                if(!read(0,&t,sizeof(char)))
-                   break;
-				if (t==0)
-                   break;
-                write(file,&t,sizeof(char));
-				//printf("!%c ",t);
-			}
-		}
-	}		
+	}	
+	return;	
 }
 
 int main()
 {
-	int argc, i;
-	char *argv[buff],pwd[buff];
+	int i, argc;
+	char pwd[buff], *argv[buff];
 	FILE *shell;
 	while (1)
 	{
-		argc = 0;
+        argc=0;
 		//输出每行前的表示符
 		shell=popen("/bin/pwd","r");
 		fscanf(shell,"%s",pwd);
@@ -119,7 +135,7 @@ int main()
 		printf("$%s>",pwd);		
 		//用户输入命令
 		getcommand(&argc, argv);
-		//用户未输入
+        //用户未输入
 		if (argc==0)
 			continue;		
 		//输入exit指令 退出当前程序
@@ -138,17 +154,11 @@ int main()
 			}
 			else
 			{
-				//if (strcmp(argv[0],"ls")==0 && (argc==1 || (argc!=1 && argv[1][0]=='-')))
-					//argv[argc++]=pwd;
-				//printf("qqq~!%d",argc);
-				//for (i=0;i<argc;i++)
-				//	printf("!%s ",argv[i]);
-				//printf("\n");
 				mysys(argc,argv);
 			}
-		for (i=0;i<argc;i++)
-            argv[i]=NULL;
-			//memset(argv[i],0,buff);
-	}
+		//for (i=0;i<argc;i++)
+        //    argv[i]=NULL;
+		memset(argv,0,sizeof(argv));
+  	}
 	return 0;
 }
