@@ -50,10 +50,28 @@ void getcommand(int *argc, char *argv[buff])
 	}
 }
 int flag[buff];
-void run_pipe(int start, int end, int argc, char *argv[])
+void run_pipe(int start, int end, int fcnt, char *argv[])
 {
 	pid_t pid;
-	if ()
+	int i,err;
+	char *tmp[buff];
+	if (end != start+1)
+	{
+		pid=fork();
+		if (pid==0)
+			run_pipe(start,end-1,fcnt,argv);
+		else
+			wait(NULL);
+	}
+	if (end!=start+1)
+		dup2(fd[0],0);
+	if (end!=fcnt-1)
+		dup2(fd[1],1);
+	for (i=flag[start]+1;i<=flag[end]-1;i++)
+		tmp[i-flag[start]-1]=argv[i];
+	err=execvp(tmp[0],tmp);
+	if (err<0)
+		perror("execvp");
 }
 
 int exec(int argc,char *argv[])
@@ -72,7 +90,7 @@ int exec(int argc,char *argv[])
 	if (pid==0)
 	{
 		pipe(fd);
-		run_pipe(0,fcnt-1,argc,argv);
+		run_pipe(0,fcnt-1,fcnt,argv);
 	}
 	else
 		wait(NULL);
