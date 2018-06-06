@@ -53,30 +53,51 @@ int flag[buff];
 void run_pipe(int start, int end, int fcnt, char *argv[])
 {
 	pid_t pid;
-	int i,err;
-	char *tmp[buff];
+	int i,err,fd[2];
+	char *tmp[buff],t;
 	if (end != start+1)
 	{
+        pipe(fd);    
 		pid=fork();
 		if (pid==0)
+		{
+			if (end-1 !=fcnt-1)
+			{
+				dup2(fd[1],1);
+				close(fd[1]);
+				close(fd[0]);
+			}
 			run_pipe(start,end-1,fcnt,argv);
+		}
 		else
-			wait(NULL);
+			waitpid(pid,NULL,0);
 	}
-	if (end!=start+1)
+	for (i=flag[end-1]+1;i<=flag[end]-1;i++)
+		tmp[i-flag[end-1]-1]=argv[i];
+	printf("t[0]:%s start:%d end:%d\n",tmp[0],start,end);
+    if (end!=start+1)
+	{
 		dup2(fd[0],0);
-	if (end!=fcnt-1)
-		dup2(fd[1],1);
-	for (i=flag[start]+1;i<=flag[end]-1;i++)
-		tmp[i-flag[start]-1]=argv[i];
+		close(fd[0]);
+		close(fd[1]);
+	}
+	/*if (end!=start+1 )
+	while(1)
+	{
+		if (!read(0,&t,sizeof(char)))
+			break;
+		write(1,&t,sizeof(char));
+	}*/
 	err=execvp(tmp[0],tmp);
 	if (err<0)
 		perror("execvp");
+	if (end!=fcnt-1)
+		close(1);
 }
 
 int exec(int argc,char *argv[])
 {
-	int i,j,fcnt=0,err,fd[2];
+	int i,j,fcnt=0,err;
 	flag[fcnt++]=-1;
 	for (i=0;i<argc;i++)
 		if (strcmp(argv[i],"|")==0)
@@ -88,12 +109,14 @@ int exec(int argc,char *argv[])
 	pid_t pid;
 	pid=fork();
 	if (pid==0)
-	{
-		pipe(fd);
+    {
 		run_pipe(0,fcnt-1,fcnt,argv);
-	}
+    }
 	else
+	{
 		wait(NULL);
+		printf("command done\n");
+	}
 	return 0;
 }
 
@@ -122,7 +145,7 @@ void mysys(int argc, char *argv[])
 				close(fd[1]);
 				argv[argc-2]=NULL;
 				argv[argc-1]=NULL;
-				err=execvp(argv[0], argv);
+				err=exec(argc, argv);
 				if (err<0)
 					perror("execvp");
 			}
@@ -149,10 +172,11 @@ void mysys(int argc, char *argv[])
 		}
 		else
 		{
-			err=execvp(argv[0], argv);
+			err=exec(argc, argv);
 			if (err<0)
 				perror("execvp");
 		}
+		return;
 	}
 	else
 	{
