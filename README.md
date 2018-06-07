@@ -1,7 +1,7 @@
 # OS-Experiment
 operating system experiment
 ****
-## 文件读写变成题目
+## 文件读写编程题目
 ### myecho.c
 &emsp;&emsp;myecho.c的功能与系统echo程序相同<br>
 &emsp;&emsp;接受命令行参数，并将参数打印出来，例子如下：<br>
