@@ -118,7 +118,7 @@ $ cat output.txt
 &emsp;&emsp;主线程创建N个辅助线程<br>
 &emsp;&emsp;每个辅助线程计算一部分任务，并将结果返回<br>
 &emsp;&emsp;主线程等待N个辅助线程运行结束，将所有辅助线程的结果累加<br>
-&emsp;&emsp;sort.c: 多线程排序<br>
+### sort.c: 多线程排序
 &emsp;&emsp;主线程创建一个辅助线程<br>
 &emsp;&emsp;主线程使用选择排序算法对数组的前半部分排序<br>
 &emsp;&emsp;辅助线程使用选择排序算法对数组的后半部分排序<br>
@@ -131,7 +131,7 @@ $ cat output.txt
 &emsp;&emsp;消费者从buffer2取出字符，将其打印到屏幕上<br>
 ### pc2.c: 使用信号量解决生产者、计算者、消费者问题
 &emsp;&emsp;功能和前面的实验相同，使用信号量解决<br>
-&emsp;&emsp;ring.c: 创建N个线程，它们构成一个环<br>
+### ring.c: 创建N个线程，它们构成一个环
 &emsp;&emsp;创建N个线程：T1、T2、T3、… TN<br>
 &emsp;&emsp;T1向T2发送整数1<br>
 &emsp;&emsp;T2收到后将整数加1<br>
