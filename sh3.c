@@ -8,6 +8,8 @@
 
 #define buff 1024
 
+int flag[buff];
+
 void getcommand(int *argc, char *argv[buff])
 {
 	char tmp;
@@ -49,7 +51,7 @@ void getcommand(int *argc, char *argv[buff])
 			}
 	}
 }
-int flag[buff];
+
 void run_pipe(int start, int end, int fcnt, char *argv[])
 {
 	pid_t pid;
@@ -74,20 +76,12 @@ void run_pipe(int start, int end, int fcnt, char *argv[])
 	}
 	for (i=flag[end-1]+1;i<=flag[end]-1;i++)
 		tmp[i-flag[end-1]-1]=argv[i];
-	printf("t[0]:%s start:%d end:%d\n",tmp[0],start,end);
     if (end!=start+1)
 	{
 		dup2(fd[0],0);
 		close(fd[0]);
 		close(fd[1]);
 	}
-	/*if (end!=start+1 )
-	while(1)
-	{
-		if (!read(0,&t,sizeof(char)))
-			break;
-		write(1,&t,sizeof(char));
-	}*/
 	err=execvp(tmp[0],tmp);
 	if (err<0)
 		perror("execvp");
@@ -95,7 +89,7 @@ void run_pipe(int start, int end, int fcnt, char *argv[])
 		close(1);
 }
 
-int exec(int argc,char *argv[])
+/*int exec(int argc,char *argv[])
 {
 	int i,j,fcnt=0,err;
 	flag[fcnt++]=-1;
@@ -118,22 +112,33 @@ int exec(int argc,char *argv[])
 		printf("command done\n");
 	}
 	return 0;
-}
+}*/
 
 void mysys(int argc, char *argv[])
 {
 	pid_t pid;
 	char tmp[buff],t;
-	int err,fd[2],file,flag=0;
+	int err,fd[2],file,fflag=0;
 	if (argc > 3 && strcmp(argv[argc-2],">")==0)
     {
-		flag=1;
+		fflag=1;
 		strcpy(tmp,argv[argc-1]);
 	}
+	
+	int i,j,fcnt=0;
+	flag[fcnt++]=-1;
+	for (i=0;i<argc;i++)
+		if (strcmp(argv[i],"|")==0)
+			flag[fcnt++]=i;
+	flag[fcnt++]=argc;
+	for (i=1;i<fcnt;i++)
+		if (flag[i]==flag[i-1]+1)
+			return;
+	
 	pid=fork();
 	if (pid==0)
 	{
-		if (flag)
+		if (fflag)
 		{
 			pid_t ppid;
 			pipe(fd);
@@ -145,9 +150,10 @@ void mysys(int argc, char *argv[])
 				close(fd[1]);
 				argv[argc-2]=NULL;
 				argv[argc-1]=NULL;
-				err=exec(argc, argv);
-				if (err<0)
-					perror("execvp");
+				run_pipe(0,fcnt-1,fcnt,argv);
+				//err=exec(argc, argv);
+				//if (err<0)
+				//	perror("execvp");
 			}
 			else
 			{
@@ -172,9 +178,10 @@ void mysys(int argc, char *argv[])
 		}
 		else
 		{
-			err=exec(argc, argv);
-			if (err<0)
-				perror("execvp");
+			run_pipe(0,fcnt-1,fcnt,argv);
+			//err=exec(argc, argv);
+			//if (err<0)
+			//	perror("execvp");
 		}
 		return;
 	}
