@@ -11,6 +11,10 @@ x
 $ ./myecho a b c
 &a b c
 ```
+```
+    通过main函数的标准输入参数获取到我们从命令行输入的参数个数argc和参数组成的二维数组argv，因为第一个参数是./myecho所以
+不用输出第一个参数，只要输出剩余的参数即可。使用一个循环由1-argc输出获取到的参数便完成了myecho。
+```
 ### mycat.c
 &emsp;&emsp;mycat.c的功能与系统cat程序相同<br>
 &emsp;&emsp;mycat将指定的文件内容输出到屏幕，例子如下：<br>
@@ -25,6 +29,11 @@ $ ./mycat /etc/passwd
 root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
 bin:x:2:2:bin:/bin:/usr/sbin/nologin
+```
+```
+    首先判断argc是否大于2，是否给定了打开的文件目录。如果给定了文件名，则从argv[1]中提取该名称，使用open函数打开文件，
+使用read_only只读模式打开，得到文件描述符fd。使用read函数从文件描述符中逐个字符读出并输出，直到read函数返回0表示文件
+到达了末尾。
 ```
 ### mycp.c
 &emsp;&emsp;mycp.c的功能与系统cp程序相同<br>
@@ -41,6 +50,12 @@ $ cat passwd.bak
 root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
 bin:x:2:2:bin:/bin:/usr/sbin/nologin
+```
+```
+    首先判断获取的参数个数是否大于3，如果大于等于3说明用户从命令行输入了源文件名以及复制的目标地址名。使用open函数，使用
+fd_old文件描述符只读模式打开源文件地址，使用fd_new文件描述符创建读写模式打开目标文件地址。这里对于目标文件打开时，需要给
+定open的可选项，给定0777最高的权限，这样最终的输出结果能够直接被打开或被其他文件使用，否则可能会导致需要使用chmod增加文件
+权限才能使用。最后使用read函数从fd_old中逐个字符读入使用write函数输出到fd_new的目标文件中。
 ```
 ****
 ## 多进程题目
