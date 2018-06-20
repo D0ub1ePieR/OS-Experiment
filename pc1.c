@@ -107,7 +107,7 @@ void *produce(void *arg)
 
 int main()
 {
-	pthread_t tid1,tid2;
+	pthread_t tid1,tid2,tid3;
 	pthread_mutex_init(&mutex_buff1,NULL);
 	pthread_mutex_init(&mutex_buff2,NULL);
 	pthread_cond_init(&wait_empty_buff1,NULL);
@@ -117,8 +117,10 @@ int main()
 	
 	pthread_create(&tid1,NULL,consume,NULL);
 	pthread_create(&tid2,NULL,produce,NULL);
-	calculate(NULL);
+	pthread_create(&tid3,NULL,calculate,NULL);
+	//calculate(NULL);
 	pthread_join(tid2,NULL);
 	pthread_join(tid1,NULL);
+	pthread_join(tid3,NULL);
 	return 0;
 }

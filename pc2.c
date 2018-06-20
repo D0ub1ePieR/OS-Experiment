@@ -126,8 +126,8 @@ int main()
 	pthread_t tid1,tid2;
 	sema_init(&mutex_buff1,1);
 	sema_init(&mutex_buff2,1);
-	sema_init(&wait_empty_buff1,3);
-	sema_init(&wait_empty_buff2,3);
+	sema_init(&wait_empty_buff1,2);
+	sema_init(&wait_empty_buff2,2);
 	sema_init(&wait_full_buff1,0);
 	sema_init(&wait_full_buff2,0);
 	
